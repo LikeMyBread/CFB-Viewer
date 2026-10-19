@@ -617,29 +617,15 @@ html, body {
   white-space: nowrap;
 }
 
-.player-fullname {
+.player-fullname,
+.team-name-text {
   font-weight: 800;
   color: #0f172a;
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.team-pill {
-  font-size: 11px;
-  font-weight: 700;
-  color: #1e3a8a;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  padding: 2px 6px;
-  border-radius: 4px;
   display: inline-block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: middle;
 }
 
 /* Dev Trait Badges */
@@ -1150,11 +1136,11 @@ html, body {
       <table class="roster-table" id="roster-table">
         <thead>
           <tr>
+            <th data-col="team" style="width: 135px;" title="Sort by Team">TEAM</th>
             <th data-col="pos" style="width: 55px;" class="sorted-asc" title="Sort by Position (PPOS order)">POS</th>
             <th data-col="ovr" style="width: 50px;" title="Sort by Overall Rating">OVR</th>
             <th data-col="no" style="width: 45px;" title="Sort by Jersey Number">#</th>
             <th data-col="name" style="width: 220px;" title="Sort by Player Name">PLAYER NAME</th>
-            <th data-col="team" style="width: 135px;" title="Sort by Team">TEAM</th>
             <th data-col="yr" style="width: 68px;" title="Sort by Class / Year">CLASS</th>
             <th data-col="ht" style="width: 58px;" title="Sort by Height (Numerical)">HT</th>
             <th data-col="wt" style="width: 68px;" title="Sort by Weight">WT</th>
@@ -1163,7 +1149,7 @@ html, body {
             <th data-col="str" style="width: 48px;" title="Sort by Strength">STR</th>
             <th data-col="agi" style="width: 48px;" title="Sort by Agility">AGI</th>
             <th data-col="awr" style="width: 48px;" title="Sort by Awareness">AWR</th>
-            <th data-col="dev" style="width: 95px;" title="Sort by Dev Trait">TRAIT</th>
+            <th data-col="dev" style="width: 95px;" title="Sort by Dev Trait (Normal, Impact, Star, Elite)">TRAIT</th>
             <th data-col="home" style="width: auto;" title="Sort by Hometown">HOMETOWN</th>
           </tr>
         </thead>
@@ -1412,6 +1398,11 @@ const ROSTER_APP_DATA = {"posOrder":{"QB":0,"HB":1,"FB":2,"WR":3,"TE":4,"LT":5,"
       } else if (col === 'team') {
         valA = (a.team || '').toLowerCase();
         valB = (b.team || '').toLowerCase();
+      } else if (col === 'dev') {
+        // Dev traits sort order: Normal, Impact, Star, Elite
+        const devOrder = { 'Normal': 1, 'Impact': 2, 'Star': 3, 'Elite': 4 };
+        valA = devOrder[a.dev] || 0;
+        valB = devOrder[b.dev] || 0;
       } else if (['ovr', 'no', 'wt', 'spd', 'acc', 'str', 'agi', 'awr'].includes(col)) {
         valA = Number(a[col]) || 0;
         valB = Number(b[col]) || 0;
@@ -1422,7 +1413,9 @@ const ROSTER_APP_DATA = {"posOrder":{"QB":0,"HB":1,"FB":2,"WR":3,"TE":4,"LT":5,"
 
       if (valA < valB) return asc ? -1 : 1;
       if (valA > valB) return asc ? 1 : -1;
-      return 0;
+      // Secondary tiebreaker: within same group, sort by overall rating descending
+      if (b.ovr !== a.ovr) return b.ovr - a.ovr;
+      return (a.last || '').localeCompare(b.last || '');
     });
 
     return list;
@@ -1474,6 +1467,7 @@ const ROSTER_APP_DATA = {"posOrder":{"QB":0,"HB":1,"FB":2,"WR":3,"TE":4,"LT":5,"
 
     return `
       <tr class="player-row" data-idx="${idx}">
+        <td><span class="team-name-text">${p.team}</span></td>
         <td><span class="pos-badge ${posClass}">${p.pos}</span></td>
         <td><span class="ovr-badge ${ovrClass}">${p.ovr}</span></td>
         <td style="font-weight: 800; color: #475569;">#${p.no}</td>
@@ -1483,7 +1477,6 @@ const ROSTER_APP_DATA = {"posOrder":{"QB":0,"HB":1,"FB":2,"WR":3,"TE":4,"LT":5,"
             ${captainTag}
           </div>
         </td>
-        <td><span class="team-pill">${p.team}</span></td>
         <td>${p.yr || '-'}</td>
         <td>${p.ht || '-'}</td>
         <td>${p.wt ? p.wt + ' lbs' : '-'}</td>
