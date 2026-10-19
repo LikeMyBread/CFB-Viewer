@@ -297,14 +297,6 @@ html, body {
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
 }
 
-/* Fixed-width roster rating boxes pinned on the right so they never shift */
-.stat-bezel.stat-fixed {
-  width: 82px;
-  min-width: 82px;
-  flex-shrink: 0;
-  text-align: center;
-}
-
 .stat-bezel .stat-label {
   font-size: 9px;
   font-weight: 800;
@@ -314,25 +306,13 @@ html, body {
   margin-bottom: 1px;
 }
 
-.stat-bezel .stat-number {
-  font-size: 17px;
-  font-weight: 900;
-  color: #fbbf24;
-  line-height: 1.1;
-  font-family: inherit;
-}
-
-.stat-bezel .stat-number.gold { color: #facc15; }
-.stat-bezel .stat-number.blue { color: #38bdf8; }
-.stat-bezel .stat-number.green { color: #4ade80; }
-
-/* Top Rated Player Box: Generous fixed width of 300px so it comfortably fits all player strings without resizing */
+/* Top Rated Player Box: Fixed width so it comfortably fits all player strings without resizing */
 .stat-bezel.top-player-bezel {
-  width: 300px;
+  width: 320px;
   min-width: 300px;
-  max-width: 340px;
+  max-width: 360px;
   align-items: flex-start;
-  padding: 5px 14px;
+  padding: 6px 14px;
   flex-shrink: 0;
 }
 
@@ -932,6 +912,7 @@ html, body {
   .deck-row { flex-direction: column; align-items: stretch; }
   .team-scoreboard-card { flex-direction: column; align-items: stretch; }
   .scoreboard-stats { justify-content: space-between; }
+  .stat-bezel.top-player-bezel { width: 100%; min-width: unset; max-width: 100%; }
   .skeuo-input { width: 100%; }
   .attributes-grid { grid-template-columns: 1fr; }
 }
@@ -1109,34 +1090,16 @@ html, body {
 
       </div>
 
-      <!-- Line 2: Dedicated Scoreboard Line (Team Name, Average Ratings, Best Player) -->
+      <!-- Line 2: Dedicated Scoreboard Line (Team Name & Top Rated Player) -->
       <div class="header-row-scoreboard" id="scoreboard-card">
         <div class="team-identity-cluster">
           <h2 class="team-identity-title" id="team-name-display">Air Force Falcons</h2>
         </div>
         <div class="scoreboard-stats-strip">
-          <!-- Top Rated Player (Positioned to the left of the rating boxes, expands leftward) -->
+          <!-- Top Rated Player -->
           <div class="stat-bezel top-player-bezel" title="Top Rated Player">
             <span class="stat-label">Top Rated Player</span>
             <span class="stat-number" id="stat-top-player">-</span>
-          </div>
-
-          <!-- Fixed-width Roster Rating Boxes (Stationary on the right) -->
-          <div class="stat-bezel stat-fixed">
-            <span class="stat-label">Roster</span>
-            <span class="stat-number" id="stat-roster-count">85</span>
-          </div>
-          <div class="stat-bezel stat-fixed">
-            <span class="stat-label">Team OVR</span>
-            <span class="stat-number gold" id="stat-team-ovr">74.2</span>
-          </div>
-          <div class="stat-bezel stat-fixed">
-            <span class="stat-label">Offense</span>
-            <span class="stat-number blue" id="stat-off-ovr">75.1</span>
-          </div>
-          <div class="stat-bezel stat-fixed">
-            <span class="stat-label">Defense</span>
-            <span class="stat-number green" id="stat-def-ovr">73.8</span>
           </div>
         </div>
       </div>
@@ -1399,10 +1362,6 @@ const ROSTER_APP_DATA = {"posOrder":{"QB":0,"HB":1,"FB":2,"WR":3,"TE":4,"LT":5,"
 
   // Scoreboard elements
   const teamNameDisplay = document.getElementById('team-name-display');
-  const statRosterCount = document.getElementById('stat-roster-count');
-  const statTeamOvr = document.getElementById('stat-team-ovr');
-  const statOffOvr = document.getElementById('stat-off-ovr');
-  const statDefOvr = document.getElementById('stat-def-ovr');
   const statTopPlayer = document.getElementById('stat-top-player');
 
   // Modal elements
@@ -1642,26 +1601,17 @@ const ROSTER_APP_DATA = {"posOrder":{"QB":0,"HB":1,"FB":2,"WR":3,"TE":4,"LT":5,"
   // Update Scoreboard Header
   function updateScoreboard() {
     if (currentTeamId === 'ALL') {
-      const sum = summary['ALL'] || { count: 11730, avg_ovr: 74.8, avg_off: 75.1, avg_def: 74.5, top_player: '-' };
+      const sum = summary['ALL'] || { top_player: '-' };
       teamNameDisplay.textContent = 'All Players (138 Teams)';
-      statRosterCount.textContent = sum.count.toLocaleString();
-      statTeamOvr.textContent = sum.avg_ovr;
-      statOffOvr.textContent = sum.avg_off;
-      statDefOvr.textContent = sum.avg_def;
       statTopPlayer.textContent = sum.top_player;
       return;
     }
 
     const teamMeta = teams.find(t => t.id === currentTeamId) || { name: `Team ${currentTeamId}`, mascot: '' };
     const key = String(currentTeamId);
-    const teamSum = summary[key] || summary[currentTeamId] || { count: 0, avg_ovr: 0, avg_off: 0, avg_def: 0, top_player: 'N/A' };
+    const teamSum = summary[key] || summary[currentTeamId] || { top_player: 'N/A' };
 
     teamNameDisplay.textContent = teamMeta.label || teamMeta.name;
-
-    statRosterCount.textContent = teamSum.count;
-    statTeamOvr.textContent = teamSum.avg_ovr;
-    statOffOvr.textContent = teamSum.avg_off;
-    statDefOvr.textContent = teamSum.avg_def;
     statTopPlayer.textContent = teamSum.top_player;
   }
 
